@@ -130,3 +130,5 @@ launch.json
 # Discord app token
 token
 tester_token
+
+test.py
