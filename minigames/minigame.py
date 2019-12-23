@@ -30,3 +30,16 @@ class Minigame:
 
     def _display(self):
         raise NotImplementedError
+
+    def do_turn(self, argstr):
+        raise NotImplementedError
+
+    def check_turn(self, message: str) -> bool:
+        raise NotImplementedError
+
+    def winner_message(self) -> str:
+        if self.tie:
+            return "The game has ended in a tie!"
+        else:
+            winner_mention = self.winner.discord_member.mention
+            return f"{winner_mention} has won! Now fuck off!"
