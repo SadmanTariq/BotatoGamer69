@@ -89,8 +89,9 @@ async def check_timeouts():
 
 @bot.listen()
 async def on_ready():
-    playing_message = "as a host on illegal fight clubs."
-    await bot.change_presence(activity=discord.Game(playing_message))
+    status_message = "people fight. (>duel)"
+    await bot.change_presence(activity=discord.Activity(
+                      name=status_message, type=discord.ActivityType.watching))
     print("Ready.")
     await check_timeouts()
 
