@@ -34,7 +34,11 @@ class Minigame:
         # current_player_mention = self.members[self.current_player_index]
         # current_player_mention = current_player_mention.mention
         # return f"Your turn, {current_player_mention}."
-        return "FIGHT! FIGHT! FIGHT!"
+        intro = "FIGHT! FIGHT! FIGHT!"
+        if self.debug:
+            intro = "**DEBUG MODE**\n" + intro
+
+        return intro
 
     def _update_timeout(self):
         """Update the timeout_timestamp."""
