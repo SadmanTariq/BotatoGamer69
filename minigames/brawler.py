@@ -207,8 +207,8 @@ class Brawler(Minigame):
         self.players[1] = self.Player(self.members[1], "right")
 
         self._actions = {
-            "1": self.Action("Heavy attack", -40, 50.0),
-            "2": self.Action("Light attack", -20, 70.0),
+            "1": self.Action("Heavy attack", -40, 60.0),
+            "2": self.Action("Light attack", -20, 85.0),
             "3": self.Action("Heal", 20, 100.0, target_user=True,
                              hit_chance_mod=0.5),
             "4": self.Action("Defend", 0, 100, 0.5, True),
