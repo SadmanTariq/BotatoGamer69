@@ -23,6 +23,8 @@ currently_running_games = []
 
 @bot.command()
 async def duel(ctx, target: discord.Member, game_name="brawler", debug=False):
+    print(ctx.message.content, ctx.message.author.mention)
+
     if debug:
         if ctx.author.id not in VERIFIED_USERS:
             await ctx.send("Fuck off")
@@ -98,7 +100,11 @@ async def on_ready():
 
 @bot.listen()
 async def on_message(message: discord.Message):
+
     async def do_turn(game, message):
+        print("Doing turn.")
+        print(message.content, message.author.mention)
+
         game.do_turn(message)
         await message.channel.send(game._display())
         if game.winner is not None or game.tie:
