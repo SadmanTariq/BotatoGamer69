@@ -62,6 +62,9 @@ async def duel(ctx, target: discord.Member, game_name="brawler", debug=False):
     await ctx.send(new_game._display())
     currently_running_games.append(new_game)
 
+    if len(currently_running_games) == 1:
+        await check_timeouts()
+
 
 @duel.error
 async def info_error(ctx, error):
@@ -77,9 +80,10 @@ async def check_timeouts():
     """
     Remove games that have been timed out every check_interval seconds.
     """
-    check_interval = 5  # Interval between checks in seconds.
-    while True:
+    check_interval = 60  # Interval between checks in seconds.
+    while len(currently_running_games) != 0:
         current_time = time()
+        print(current_time)
         for i in range(len(currently_running_games)):
             game = currently_running_games[i]
             if current_time >= game.timeout_timestamp:
