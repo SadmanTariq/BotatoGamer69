@@ -80,7 +80,6 @@ async def check_timeouts():
     check_interval = 5  # Interval between checks in seconds.
     while True:
         current_time = time()
-        print(current_time)
         for i in range(len(currently_running_games)):
             game = currently_running_games[i]
             if current_time >= game.timeout_timestamp:
