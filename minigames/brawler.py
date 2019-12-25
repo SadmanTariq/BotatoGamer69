@@ -1,10 +1,13 @@
 import discord
 from minigames.minigame import Minigame
 from random import uniform
+from random import randrange
+
+# Ignore my spagghetti of a program, thank you :)
 
 
 class Brawler(Minigame):
-    players = []
+    players = [None, None]
     _last_action = "None"
     _actions = {}
 
@@ -14,13 +17,94 @@ class Brawler(Minigame):
         Attributes:
             discord_member: discord.Member object of the player.
             health: Current health.
+            damage_modifier: Will be multiplied to any damage taken.
+            model: PlayerModel instance.
         """
+
+        class PlayerModel:
+            _LEFT_CHAR_PARTS = {
+                "head": ["(°°", "[°°", "[°}", " P ", " ••"],
+                "left_arm": ["/", "'", "\\", "^", "V"],
+                "right_arm": ['"', "<", "-", ")"]
+            }
+            _RIGHT_CHAR_PARTS = {
+                "head": ["°°)", "°°]", "{°]", "•• "],
+                "left_arm": ['"', ">", "(", "-"],
+                "right_arm": ["/", "\\", "'", "^", "V"]
+            }
+            _NEUTRAL_CHAR_PARTS = {
+                "head": [" O ", "°_°", "'-'", "'.'", "-.-"],
+                "left_arm": [],
+                "right_arm": [],
+                "left_leg": ["/", "[", "{", "(", "!", "]", "}", ")", "!"],
+                "right_leg": ["/", "[", "{", "(", "!", "]", "}", ")", "!"],
+                "body": ["|"]
+            }
+
+            body_parts = {}
+
+            def __init__(self, side: str):
+                self.body_parts = self._get_parts(side)
+
+            def _get_parts(self, side):
+                available_parts = self._get_available_parts(side)
+                parts = {}
+
+                for key, item in available_parts.items():
+                    parts[key] = item[randrange(len(item))]
+
+                return parts
+
+            def _get_available_parts(self, side):
+                parts = {}
+                if side == "left":
+                    for key, item in self._NEUTRAL_CHAR_PARTS.items():
+                        parts[key] = item.copy()
+                        parts[key] += self._LEFT_CHAR_PARTS.get(key, []).copy()
+                elif side == "right":
+                    for key, item in self._NEUTRAL_CHAR_PARTS.items():
+                        parts[key] = item.copy()
+                        right_parts = self._RIGHT_CHAR_PARTS.get(key, [])
+                        parts[key] += right_parts.copy()
+                return parts
+
+            def stitch(self, right, gap=4, sep=" "):
+                # Heads
+                stitched = self.body_parts["head"] + " " * gap + sep
+                stitched += right.body_parts["head"] + " " * gap + "\n"
+
+                # Bodies
+                torso_left = self.body_parts["left_arm"]
+                torso_left += self.body_parts["body"]
+                torso_left += self.body_parts["right_arm"]
+
+                torso_right = right.body_parts["left_arm"]
+                torso_right += right.body_parts["body"]
+                torso_right += right.body_parts["right_arm"]
+
+                stitched += torso_left + " " * gap + sep + torso_right
+                stitched += " " * gap + "\n"
+
+                # Legs
+                legs_left = self.body_parts["left_leg"] + " "
+                legs_left += self.body_parts["right_leg"]
+
+                legs_right = right.body_parts["left_leg"] + " "
+                legs_right += right.body_parts["right_leg"]
+
+                stitched += legs_left + " " * gap + sep + legs_right
+                stitched += " " * gap
+
+                return stitched
+
         discord_member = None
         health = 100
         damage_modifier = 1.0
+        model = None
 
-        def __init__(self, _member: discord.Member):
+        def __init__(self, _member: discord.Member, side: str):
             self.discord_member = _member
+            self.model = self.PlayerModel(side)
 
     class Action:
         """
@@ -78,8 +162,6 @@ class Brawler(Minigame):
             modifier = self.hit_chance_mod ** self.consecutive_uses
             modified_hit_chance = self.hit_chance * modifier
 
-            print(f"Hit chance: {modified_hit_chance}")
-
             hit = False
             if uniform(0, 1) * 100 <= modified_hit_chance:
                 hit = True
@@ -89,36 +171,40 @@ class Brawler(Minigame):
             if self.target_user:
                 target = user
 
-            # Make a description
-            description = self.name
-            if self.hp_change != 0:
-                description += f" ({self.hp_change}"
-                if opponent.damage_modifier != 1:
-                    description += f"*{opponent.damage_modifier}"
-                description += " hp)"
             # Modify target.
             if hit:
                 # Change damage_mod.
                 target.damage_modifier = self.damage_mod
+
+                # Make a description
+                description = self.name
+                if self.hp_change != 0:
+                    description += f" ({self.hp_change}"
+                    if opponent.damage_modifier != 1:
+                        description += f"*{opponent.damage_modifier}"
+                    description += " hp)"
 
                 # Change health.
                 self._apply_hp_change(target)
 
                 self.consecutive_uses += 1
 
-                if self.modified_hit_chance <= 10:
+                if modified_hit_chance <= 10:
                     return description + " Holy shit that worked!?"
                 else:
                     return description
             else:
-                if self.modified_hit_chance <= 10:
+                if modified_hit_chance <= 10:
                     return "Congratulations! You just wasted a turn!"
                 else:
                     return "Miss"
 
     def _initialise(self, _channel: discord.TextChannel, _members: iter):
         """Called after __init__()"""
-        self.players = [self.Player(member) for member in self.members]
+        # self.players = [self.Player(member) for member in self.members]
+        self.players[0] = self.Player(self.members[0], "left")
+        self.players[1] = self.Player(self.members[1], "right")
+
         self._actions = {
             "1": self.Action("Heavy attack", -40, 50.0),
             "2": self.Action("Light attack", -20, 70.0),
@@ -130,6 +216,10 @@ class Brawler(Minigame):
 
     def _display(self):
         """Returns a nicely formatted string to be sent."""
+
+        # TODO:
+        # Randomly generated character models.
+
         def format_actions():
             string = "Available actions:\n"
             for key, action in self._actions.items():
@@ -165,7 +255,7 @@ class Brawler(Minigame):
         display += f"{self.players[1].discord_member.name[:6]}\n"
         # [Name]  [Name]
 
-        display += " O       O     \n/|\\     /|\\    \n/ \\     / \\    \n"
+        display += self.players[0].model.stitch(self.players[1].model) + "\n"
         #  O       O
         # /|\     /|\
         # / \     / \
