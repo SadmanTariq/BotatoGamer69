@@ -211,7 +211,7 @@ class Brawler(Minigame):
             "3": self.Action("Heal", 20, 100.0, target_user=True,
                              hit_chance_mod=0.5),
             "4": self.Action("Defend", 0, 100, 0.5, True),
-            "5": self.Action("`/kill @a`", 100, 5.0)
+            "5": self.Action("`/kill @a`", -100, 5.0)
         }
 
     def _display(self):
