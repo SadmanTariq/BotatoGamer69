@@ -143,12 +143,13 @@ class Brawler(Minigame):
                 self.description += f" ({self.hp_change} hp)"
 
         def _apply_hp_change(self, target):
+            hp_upper_bound = 120
             hp_change = self.hp_change * target.damage_modifier
 
             if target.health + hp_change < 0:
                 target.health = 0
-            elif target.health + hp_change > 100:
-                target.health = 100
+            elif target.health + hp_change > hp_upper_bound:
+                target.health = hp_upper_bound
             else:
                 target.health += hp_change
 
