@@ -3,7 +3,7 @@ from discord.ext import commands
 from os import environ
 import minigames.brawler
 from time import time
-import asyncio
+# import asyncio
 
 VERIFIED_USERS = [340115550208262145]
 
@@ -62,9 +62,6 @@ async def duel(ctx, target: discord.Member, game_name="brawler", debug=False):
     await ctx.send(new_game._display())
     currently_running_games.append(new_game)
 
-    if len(currently_running_games) == 1:
-        await check_timeouts()
-
 
 @duel.error
 async def info_error(ctx, error):
@@ -78,19 +75,15 @@ async def info_error(ctx, error):
 
 async def check_timeouts():
     """
-    Remove games that have been timed out every check_interval seconds.
+    Remove games that have been timed out.
     """
-    check_interval = 60  # Interval between checks in seconds.
-    while len(currently_running_games) != 0:
-        current_time = time()
-        print(current_time)
-        for i in range(len(currently_running_games)):
-            game = currently_running_games[i]
-            if current_time >= game.timeout_timestamp:
-                await game.channel.send(game.timeout_message())
-                currently_running_games.pop(i)
-
-        await asyncio.sleep(check_interval)
+    current_time = time()
+    print(current_time)
+    for i in range(len(currently_running_games)):
+        game = currently_running_games[i]
+        if current_time >= game.timeout_timestamp:
+            await game.channel.send(game.timeout_message())
+            currently_running_games.pop(i)
 
 
 @bot.listen()
@@ -99,11 +92,11 @@ async def on_ready():
     await bot.change_presence(activity=discord.Activity(
                       name=status_message, type=discord.ActivityType.watching))
     print("Ready.")
-    await check_timeouts()
 
 
 @bot.listen()
 async def on_message(message: discord.Message):
+    await check_timeouts()
 
     async def do_turn(game, message):
         print("Doing turn.")
