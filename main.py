@@ -22,6 +22,17 @@ currently_running_games = []
 
 
 @bot.command()
+async def restart(ctx):
+    if ctx.author.id in VERIFIED_USERS:
+        while len(currently_running_games) != 0:
+            currently_running_games.pop()
+
+        await ctx.send("All games ended.")
+    else:
+        ctx.send("Fuck off.")
+
+
+@bot.command()
 async def duel(ctx, target: discord.Member, game_name="brawler", debug=False):
     print(ctx.message.content, ctx.message.author.mention)
 
